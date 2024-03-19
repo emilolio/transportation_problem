@@ -18,8 +18,6 @@ def init_vogel(C, S, D):
         is_pivot_row = True
         pivot_idx = -1
 
-        print(f'len non filled rows: {len(non_filled_rows)}')
-
         if len(non_filled_rows) < 2:
             is_pivot_row = True
             pivot_idx = non_filled_rows.pop()
@@ -32,8 +30,6 @@ def init_vogel(C, S, D):
             col_diffs = np.column_stack((non_filled_colls, [np.diff(np.sort(C[non_filled_rows, j])[:2]) for j in non_filled_colls]))
             max_row_diff = max(row_diffs, key=lambda x: x[1])
             max_col_diff = max(col_diffs, key=lambda x: x[1])
-
-            print(f'col_diffs: {col_diffs.tolist()}')
 
             if max_col_diff[1] > max_row_diff[1]:
                 is_pivot_row = False
@@ -66,17 +62,10 @@ def init_vogel(C, S, D):
         for i, x in enumerate(D):
             if x - np.sum(A[:, i]) == 0 and i in non_filled_colls:
                 non_filled_colls.remove(i)
-                print(f'Col {i} deleted')
         
         for i, x in enumerate(S):
             if x - np.sum(A[i]) == 0 and i in non_filled_rows:
                 non_filled_rows.remove(i)
-                print(f'Row {i} deleted')
-
-        
-        print(f'pivot idx: {pivot_idx}')
-        print(f'is pivot row: {is_pivot_row}')
-        print(f'A: \n{A}\n')
 
 
     if sum(S) > sum(D):
@@ -89,8 +78,7 @@ def init_vogel(C, S, D):
         for i in range(m):
             A[i, -1] = S[i] - sum(A[i])
 
-
-    print(f'C:\n{C} \n A:\n{A}')
+    print(f'A:\n{A}')
 
     return A, C
 
@@ -119,6 +107,7 @@ def transportation_solver(A, C):
         while idxs_zeros:
             c += 1
             if c > (m*n)**2:
+                print("Degeneracy occured\n")
                 return A, np.sum(np.multiply(A, C))
             i, j = idxs_zeros.pop(0)
             if first:
@@ -131,11 +120,6 @@ def transportation_solver(A, C):
                 v[i] = C[i, j] - w[j]
             else:
                 idxs_zeros.append((i, j))
-
-            # print('v: ', v)
-            # print('w: ', w)
-            # print('zeros: ', idxs_zeros)
-
 
         v = np.array(v, dtype=int)
         w = np.array(w, dtype=int)
@@ -151,10 +135,8 @@ def transportation_solver(A, C):
 
         index_min = np.unravel_index(C_slack.argmin(), C_slack.shape)
 
-        print(f'C slack: \n{C_slack}')
-
-        if C_slack[index_min] >= 0 or counter > 3:
-            # Optimal found 
+        if C_slack[index_min] >= 0:
+            print("Previous iteration found optimal solution!")
             break
 
         row, col = index_min
@@ -177,16 +159,11 @@ def transportation_solver(A, C):
         A[points[2]] += change
         A[points[3]] -= change
 
-        print(f'points: {points}')
-        print(f'change: {change}')
-        print(f'C_hat: \n{C_slack}')
         print(f'A:\n{A}')
         print(f'min: {np.sum(np.multiply(A, C))}')
 
         print("\n- - - - - - - - - - - - - - - - - - - - - - -\n")
 
     min_cost = np.sum(np.multiply(A, C))
-    print(f'A:\n{A}')
-    print(f'min cost: {min_cost}')
 
     return A, min_cost
